@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useEffect,
+  useMemo,
   useReducer,
   useRef,
   useState,
@@ -21,7 +22,6 @@ const useSemiPersistentState = (key, initialState) => {
     if (!isMounted.current) {
       isMounted.current = true;
     } else {
-      console.log("A");
       localStorage.setItem(key, value);
     }
   }, [value, key]);
@@ -62,6 +62,10 @@ const storiesReducer = (state, action) => {
   }
 };
 
+const getSumComments = (stories) => {
+  return stories.data.reduce((result, value) => result + value.num_comments, 0);
+};
+
 const App = () => {
   const [searchTerm, setSearchTerm] = useSemiPersistentState("search", "React");
 
@@ -95,12 +99,12 @@ const App = () => {
     handleFetchStories();
   }, [handleFetchStories]);
 
-  const handleRemoveStory = (item) => {
+  const handleRemoveStory = useCallback((item) => {
     dispatchStories({
       type: "REMOVE_STORY",
       payload: item,
     });
-  };
+  }, []);
 
   const handleSearchInput = (event) => {
     setSearchTerm(event.currentTarget.value);
@@ -111,11 +115,13 @@ const App = () => {
     event.preventDefault();
   };
 
-  console.log("B:App");
+  const sumComments = useMemo(() => getSumComments(stories), [stories]);
 
   return (
     <div className="container">
-      <h1 className="headline-primary">My Hacker Stories</h1>
+      <h1 className="headline-primary">
+        My Hacker Stories with {sumComments} comments.
+      </h1>
       <SearchForm
         searchTerm={searchTerm}
         onSearchInput={handleSearchInput}
@@ -186,10 +192,11 @@ const InputWithLabel = ({
   );
 };
 
-const List = ({ list, onRemoveItem }) =>
+const List = React.memo(({ list, onRemoveItem }) =>
   list.map((item) => (
     <Item key={item.objectID} item={item} onRemoveItem={onRemoveItem} />
-  ));
+  ))
+);
 
 const Item = ({ item, onRemoveItem }) => {
   return (
