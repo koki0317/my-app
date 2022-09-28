@@ -7,15 +7,23 @@ import React, {
 } from "react";
 
 import axios from "axios";
-import styles from "./App.module.css";
+import "./App.css";
+import { ReactComponent as Check } from "./check.svg";
 
 const API_ENDPOINT = "https://hn.algolia.com/api/v1/search?query=";
 
 const useSemiPersistentState = (key, initialState) => {
+  const isMounted = useRef(false);
+
   const [value, setValue] = useState(localStorage.getItem(key) || initialState);
 
   useEffect(() => {
-    localStorage.setItem(key, value);
+    if (!isMounted.current) {
+      isMounted.current = true;
+    } else {
+      console.log("A");
+      localStorage.setItem(key, value);
+    }
   }, [value, key]);
 
   return [value, setValue];
@@ -103,9 +111,11 @@ const App = () => {
     event.preventDefault();
   };
 
+  console.log("B:App");
+
   return (
-    <div className={styles.container}>
-      <h1 className={styles.headlinePrimary}>My Hacker Stories</h1>
+    <div className="container">
+      <h1 className="headline-primary">My Hacker Stories</h1>
       <SearchForm
         searchTerm={searchTerm}
         onSearchInput={handleSearchInput}
@@ -122,7 +132,7 @@ const App = () => {
 };
 
 const SearchForm = ({ searchTerm, onSearchInput, onSearchSubmit }) => (
-  <form onSubmit={onSearchSubmit} className={styles.searchForm}>
+  <form onSubmit={onSearchSubmit} className="search-form">
     <InputWithLabel
       id="search"
       value={searchTerm}
@@ -133,7 +143,7 @@ const SearchForm = ({ searchTerm, onSearchInput, onSearchSubmit }) => (
     </InputWithLabel>
     <button
       type="submit"
-      className={`${styles.button} ${styles.buttonLarge}`}
+      className="button button_large"
       disabled={!searchTerm}
       onClick={onSearchSubmit}
     >
@@ -160,7 +170,7 @@ const InputWithLabel = ({
 
   return (
     <>
-      <label htmlFor="id" className={styles.label}>
+      <label htmlFor="id" className="label">
         {children}
       </label>
       &nbsp;
@@ -170,7 +180,7 @@ const InputWithLabel = ({
         type={type}
         value={value}
         onChange={onInputChange}
-        className={styles.input}
+        className="input"
       />
     </>
   );
@@ -183,7 +193,7 @@ const List = ({ list, onRemoveItem }) =>
 
 const Item = ({ item, onRemoveItem }) => {
   return (
-    <div className={styles.item}>
+    <div className="item">
       <span style={{ width: "40%" }}>
         <a href={item.url}>{item.title}</a>
       </span>
@@ -193,10 +203,10 @@ const Item = ({ item, onRemoveItem }) => {
       <span style={{ width: "10%" }}>
         <button
           type="button"
-          className={`${styles.button} ${styles.buttonSmall}`}
+          className="button button_small"
           onClick={() => onRemoveItem(item)}
         >
-          Dismiss
+          <Check height="18px" width="18px" />
         </button>
       </span>
     </div>
